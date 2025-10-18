@@ -241,10 +241,10 @@ downloadBtn.addEventListener('click', async () => {
     try {
         const scale = 4;
         const rect = nftCard.getBoundingClientRect();
-        const fixedWidth = rect.width;
-        const fixedHeight = rect.height;
+        const fixedWidth = Math.round(rect.width);
+        const fixedHeight = Math.round(rect.height);
 
-        // Buat container sementara supaya proporsi kartu tidak berubah
+        // 🔒 Buat wrapper fix-size
         const wrapper = document.createElement('div');
         wrapper.style.position = 'absolute';
         wrapper.style.top = '-9999px';
@@ -252,22 +252,28 @@ downloadBtn.addEventListener('click', async () => {
         wrapper.style.width = `${fixedWidth}px`;
         wrapper.style.height = `${fixedHeight}px`;
         wrapper.style.overflow = 'hidden';
-        wrapper.style.display = 'flex';
-        wrapper.style.alignItems = 'center';
-        wrapper.style.justifyContent = 'center';
 
-        // Clone elemen kartu NFT
+        // ✨ Clone kartu
         const clone = nftCard.cloneNode(true);
         clone.style.width = `${fixedWidth}px`;
         clone.style.height = `${fixedHeight}px`;
+        clone.style.maxWidth = `${fixedWidth}px`;
+        clone.style.maxHeight = `${fixedHeight}px`;
+        clone.style.aspectRatio = 'unset'; // ⬅️ ini penting banget
         clone.style.transform = 'none';
         clone.style.transition = 'none';
-        clone.style.aspectRatio = 'auto'; // supaya tidak lonjong
+
+        // Hapus semua style responsive di dalam kartu
+        clone.querySelectorAll('*').forEach(el => {
+            el.style.maxWidth = 'unset';
+            el.style.maxHeight = 'unset';
+            el.style.aspectRatio = 'unset';
+        });
 
         wrapper.appendChild(clone);
         document.body.appendChild(wrapper);
 
-        // ✅ Fix object-fit semua gambar & logo
+        // 🖼️ Fix object-fit semua gambar/logo
         clone.querySelectorAll('img').forEach(img => {
             const originalImg = nftCard.querySelector(`img[src="${img.getAttribute('src')}"]`);
             if (originalImg) {
@@ -278,20 +284,20 @@ downloadBtn.addEventListener('click', async () => {
             }
         });
 
-        // ✅ Hilangkan efek background-clip text (hapus lingkaran & bar putih)
+        // 🚫 Hilangkan background-clip text (hapus kotak putih & lingkaran)
         clone.querySelectorAll('.card-title, .card-number').forEach(el => {
             el.style.background = 'none';
             el.style.webkitBackgroundClip = 'unset';
-            el.style.webkitTextFillColor = '#ffffff'; // warna solid biar gak glitch
+            el.style.webkitTextFillColor = '#ffffff';
         });
 
-        // ✅ Freeze animasi
+        // 🧊 Freeze animasi
         clone.querySelectorAll('*').forEach(el => {
             el.style.animation = 'none';
             el.style.transition = 'none';
         });
 
-        // ✅ Render base card
+        // 📸 Render base card
         const canvas = await html2canvas(wrapper, {
             scale,
             backgroundColor: null,
@@ -300,7 +306,7 @@ downloadBtn.addEventListener('click', async () => {
 
         const ctx = canvas.getContext('2d');
 
-        // ✅ Render layer hologram & glow manual biar lebih tajam
+        // 🌈 Render layer efek (hologram, glow, strip)
         const overlaySelectors = ['.light-strip', '.hologram-overlay', '.glow-effect', '.spotlight-effect'];
         for (const selector of overlaySelectors) {
             const originalLayer = nftCard.querySelector(selector);
@@ -321,7 +327,7 @@ downloadBtn.addEventListener('click', async () => {
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
 
-        // ✅ Download hasil render
+        // 💾 Download hasil render
         const link = document.createElement('a');
         link.download = `nft-card-${cardTitle.value.replace(/\s+/g, '-').toLowerCase()}.png`;
         link.href = canvas.toDataURL('image/png');
