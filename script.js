@@ -303,7 +303,7 @@ downloadBtn.addEventListener('click', async () => {
             // hentikan animasi dan paksa posisi
             cloneLightStrip.style.animation = 'none';
             cloneLightStrip.style.transition = 'none';
-            cloneLightStrip.style.backgroundPosition = '50% 0'; // efek nyinar di tengah
+            cloneLightStrip.style.backgroundPosition = '30% 0'; // efek nyinar di tengah
         }
 
         // 📸 Render base card
