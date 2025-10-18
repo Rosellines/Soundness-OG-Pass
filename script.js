@@ -234,53 +234,87 @@ nftCard.addEventListener('mouseleave', () => {
 // Download / Export logic
 const downloadSelect = document.getElementById('downloadSelect');
 
-// --- SEMUA BAGIAN SCRIPT DI ATAS TIDAK DIUBAH --- //
-
-// Hapus semua export lama (PNG & Lottie) — Diganti dengan script export baru
 downloadBtn.addEventListener('click', async () => {
     downloadBtn.textContent = 'Rendering...';
     downloadBtn.disabled = true;
 
     try {
-        const card = nftCard.cloneNode(true);
-        const original = nftCard.getBoundingClientRect();
-        card.style.position = 'absolute';
-        card.style.top = '-9999px';
-        card.style.left = '-9999px';
-        card.style.transform = 'none';
-        card.style.transition = 'none';
-        document.body.appendChild(card);
+        const scale = 4;
+        const originalRect = nftCard.getBoundingClientRect();
+        const width = originalRect.width * scale;
+        const height = originalRect.height * scale;
 
-        // Pause animasi & pastikan style visual fixed
-        card.querySelectorAll('*').forEach(el => {
-            const style = window.getComputedStyle(el);
-            el.style.animationPlayState = 'paused';
+        // Clone elemen kartu
+        const cardClone = nftCard.cloneNode(true);
+        cardClone.style.position = 'absolute';
+        cardClone.style.top = '-9999px';
+        cardClone.style.left = '-9999px';
+        cardClone.style.transform = 'none';
+        cardClone.style.transition = 'none';
+        document.body.appendChild(cardClone);
+
+        // Freeze semua animasi & style supaya layer stabil
+        cardClone.querySelectorAll('*').forEach(el => {
+            const cs = window.getComputedStyle(el);
+            el.style.animation = 'none';
             el.style.transition = 'none';
-            el.style.opacity = style.opacity;
-            el.style.background = style.background;
-            el.style.backgroundImage = style.backgroundImage;
-            el.style.backgroundSize = style.backgroundSize;
-            el.style.backgroundPosition = style.backgroundPosition;
-            el.style.mixBlendMode = style.mixBlendMode;
-            el.style.filter = style.filter;
+            el.style.opacity = cs.opacity;
+            el.style.background = cs.background;
+            el.style.backgroundImage = cs.backgroundImage;
+            el.style.backgroundSize = cs.backgroundSize;
+            el.style.backgroundPosition = cs.backgroundPosition;
+            el.style.mixBlendMode = cs.mixBlendMode;
+            el.style.filter = cs.filter;
+            el.style.webkitTextFillColor = cs.webkitTextFillColor;
         });
 
-        // Buat canvas resolusi tinggi
-        const scale = 4;
-        const canvas = await html2canvas(card, {
+        // Render layer dasar
+        const baseCanvas = await html2canvas(cardClone, {
             scale,
             backgroundColor: null,
-            useCORS: true,
-            allowTaint: true
+            useCORS: true
         });
 
-        const type = 'image/png'; // atau image/jpeg (bisa diubah sesuai kebutuhan)
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = width;
+        finalCanvas.height = height;
+        const ctx = finalCanvas.getContext('2d');
+
+        ctx.drawImage(baseCanvas, 0, 0);
+
+        // Manual overlay efek khusus
+        const overlaySelectors = [
+            '.light-strip',
+            '.glass-reflection',
+            '.hologram-overlay',
+            '.spotlight-effect',
+            '.glow-effect'
+        ];
+
+        for (const selector of overlaySelectors) {
+            const layer = cardClone.querySelector(selector);
+            if (layer) {
+                const tempCanvas = await html2canvas(layer, {
+                    scale,
+                    backgroundColor: null,
+                    useCORS: true
+                });
+                const cs = window.getComputedStyle(layer);
+                ctx.globalAlpha = parseFloat(cs.opacity) || 1;
+                ctx.globalCompositeOperation = cs.mixBlendMode || 'overlay';
+                ctx.drawImage(tempCanvas, 0, 0);
+            }
+        }
+
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+
         const link = document.createElement('a');
-        link.download = `nft-card-${cardTitle.value.replace(/\s+/g, '-').toLowerCase()}.${type === 'image/png' ? 'png' : 'jpg'}`;
-        link.href = canvas.toDataURL(type);
+        link.download = `nft-card-${cardTitle.value.replace(/\s+/g, '-').toLowerCase()}.png`;
+        link.href = finalCanvas.toDataURL('image/png');
         link.click();
 
-        document.body.removeChild(card);
+        document.body.removeChild(cardClone);
     } catch (err) {
         console.error(err);
         alert('Gagal generate gambar.');
@@ -289,17 +323,3 @@ downloadBtn.addEventListener('click', async () => {
         downloadBtn.disabled = false;
     }
 });
-
-// Event listeners
-cardTitle.addEventListener('input', updateCard);
-cardDescription.addEventListener('input', updateCard);
-cardRarity.addEventListener('input', updateCard);
-cardNumber.addEventListener('input', updateCard);
-cardOwner.addEventListener('input', updateCard);
-themeSelect.addEventListener('change', (e) => changeTheme(e.target.value));
-fontSelect.addEventListener('change', (e) => changeFont(e.target.value));
-
-// Initialize
-initThemeButtons();
-updateCard();
-changeTheme(currentTheme);
