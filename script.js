@@ -273,23 +273,16 @@ downloadBtn.addEventListener('click', async () => {
         wrapper.appendChild(clone);
         document.body.appendChild(wrapper);
 
-        // 🖼️ Fix object-fit + rasio gambar/logo 1:1
-clone.querySelectorAll('img').forEach(img => {
-    const originalImg = nftCard.querySelector(`img[src="${img.getAttribute('src')}"]`);
-    if (originalImg) {
-        const cs = window.getComputedStyle(originalImg);
-        const natW = originalImg.naturalWidth;
-        const natH = originalImg.naturalHeight;
-
-        img.style.objectFit = cs.objectFit;
-        img.style.width = `${natW}px`;
-        img.style.height = `${natH}px`;
-        img.style.maxWidth = 'unset';
-        img.style.maxHeight = 'unset';
-        img.style.aspectRatio = 'unset';
-    }
-});
-
+        // 🖼️ Fix object-fit gambar & logo
+        clone.querySelectorAll('img').forEach(img => {
+            const originalImg = nftCard.querySelector(`img[src="${img.getAttribute('src')}"]`);
+            if (originalImg) {
+                const cs = window.getComputedStyle(originalImg);
+                img.style.objectFit = cs.objectFit;
+                img.style.width = cs.width;
+                img.style.height = cs.height;
+            }
+        });
 
         // 🚫 Hapus background-clip text
         clone.querySelectorAll('.card-title, .card-number').forEach(el => {
