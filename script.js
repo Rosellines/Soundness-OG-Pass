@@ -239,87 +239,100 @@ downloadBtn.addEventListener('click', async () => {
     downloadBtn.disabled = true;
 
     try {
-        const scale = 4;
-        const originalRect = nftCard.getBoundingClientRect();
-        const width = originalRect.width * scale;
-        const height = originalRect.height * scale;
+        const card = nftCard.cloneNode(true);
+        const original = nftCard.getBoundingClientRect();
+        card.style.position = 'absolute';
+        card.style.top = '-9999px';
+        card.style.left = '-9999px';
+        card.style.transform = 'none';
+        card.style.transition = 'none';
+        document.body.appendChild(card);
 
-        // Clone elemen kartu
-        const cardClone = nftCard.cloneNode(true);
-        cardClone.style.position = 'absolute';
-        cardClone.style.top = '-9999px';
-        cardClone.style.left = '-9999px';
-        cardClone.style.transform = 'none';
-        cardClone.style.transition = 'none';
-        document.body.appendChild(cardClone);
-
-        // Freeze semua animasi & style supaya layer stabil
-        cardClone.querySelectorAll('*').forEach(el => {
-            const cs = window.getComputedStyle(el);
-            el.style.animation = 'none';
+        // pastikan semua animasi berhenti supaya efeknya fix di frame yang terlihat
+        card.querySelectorAll('*').forEach(el => {
+            const style = window.getComputedStyle(el);
+            el.style.animationPlayState = 'paused';
             el.style.transition = 'none';
-            el.style.opacity = cs.opacity;
-            el.style.background = cs.background;
-            el.style.backgroundImage = cs.backgroundImage;
-            el.style.backgroundSize = cs.backgroundSize;
-            el.style.backgroundPosition = cs.backgroundPosition;
-            el.style.mixBlendMode = cs.mixBlendMode;
-            el.style.filter = cs.filter;
-            el.style.webkitTextFillColor = cs.webkitTextFillColor;
+            el.style.opacity = style.opacity;
+            el.style.mixBlendMode = style.mixBlendMode;
+            el.style.filter = style.filter;
+            el.style.background = style.background;
+            el.style.backgroundImage = style.backgroundImage;
+            el.style.backgroundSize = style.backgroundSize;
+            el.style.backgroundPosition = style.backgroundPosition;
         });
 
-        // Render layer dasar
-        const baseCanvas = await html2canvas(cardClone, {
+        // buat canvas dengan resolusi tinggi
+        const scale = 3;
+        const canvas = document.createElement('canvas');
+        canvas.width = original.width * scale;
+        canvas.height = original.height * scale;
+        const ctx = canvas.getContext('2d');
+
+        // step 1: render dasar dari html2canvas
+        const baseCanvas = await html2canvas(card, {
             scale,
             backgroundColor: null,
-            useCORS: true
+            useCORS: true,
+            allowTaint: true
         });
-
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = width;
-        finalCanvas.height = height;
-        const ctx = finalCanvas.getContext('2d');
-
         ctx.drawImage(baseCanvas, 0, 0);
 
-        // Manual overlay efek khusus
-        const overlaySelectors = [
-            '.light-strip',
-            '.glass-reflection',
-            '.hologram-overlay',
-            '.spotlight-effect',
-            '.glow-effect'
-        ];
+        // step 2: tambahkan overlay efek secara manual dengan blending
+        const overlayLayers = card.querySelectorAll('.light-strip, .glass-reflection, .hologram-overlay, .texture-overlay, .spotlight-effect, .glow-effect');
+        overlayLayers.forEach(layer => {
+            const cs = window.getComputedStyle(layer);
+            const grad = cs.backgroundImage || cs.background;
+            const op = parseFloat(cs.opacity) || 1;
+            const blend = cs.mixBlendMode || 'normal';
 
-        for (const selector of overlaySelectors) {
-            const layer = cardClone.querySelector(selector);
-            if (layer) {
-                const tempCanvas = await html2canvas(layer, {
-                    scale,
-                    backgroundColor: null,
-                    useCORS: true
-                });
-                const cs = window.getComputedStyle(layer);
-                ctx.globalAlpha = parseFloat(cs.opacity) || 1;
-                ctx.globalCompositeOperation = cs.mixBlendMode || 'overlay';
-                ctx.drawImage(tempCanvas, 0, 0);
+            if (grad && grad.includes('gradient')) {
+                // buat pseudo-layer dari gradient
+                const temp = document.createElement('canvas');
+                temp.width = canvas.width;
+                temp.height = canvas.height;
+                const tctx = temp.getContext('2d');
+                const g = tctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                g.addColorStop(0, 'rgba(255,255,255,0)');
+                g.addColorStop(1, 'rgba(255,255,255,0.1)');
+                tctx.fillStyle = g;
+                tctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.globalAlpha = op;
+                ctx.globalCompositeOperation = blend;
+                ctx.drawImage(temp, 0, 0);
             }
-        }
+        });
 
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
 
         const link = document.createElement('a');
         link.download = `nft-card-${cardTitle.value.replace(/\s+/g, '-').toLowerCase()}.png`;
-        link.href = finalCanvas.toDataURL('image/png');
+        link.href = canvas.toDataURL('image/png');
         link.click();
 
-        document.body.removeChild(cardClone);
+        document.body.removeChild(card);
     } catch (err) {
         console.error(err);
-        alert('Gagal generate gambar.');
+        alert('Gagal generate PNG.');
     } finally {
-        downloadBtn.textContent = 'Generate';
+        downloadBtn.textContent = 'Download NFT Card';
         downloadBtn.disabled = false;
     }
 });
+
+
+// Event listeners
+cardTitle.addEventListener('input', updateCard);
+cardDescription.addEventListener('input', updateCard);
+cardRarity.addEventListener('input', updateCard);
+cardNumber.addEventListener('input', updateCard);
+cardOwner.addEventListener('input', updateCard);
+themeSelect.addEventListener('change', (e) => changeTheme(e.target.value));
+fontSelect.addEventListener('change', (e) => changeFont(e.target.value));
+
+// Initialize
+initThemeButtons();
+updateCard();
+changeTheme(currentTheme);
