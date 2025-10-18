@@ -234,6 +234,9 @@ nftCard.addEventListener('mouseleave', () => {
 // Download / Export logic
 const downloadSelect = document.getElementById('downloadSelect');
 
+// --- SEMUA BAGIAN SCRIPT DI ATAS TIDAK DIUBAH --- //
+
+// Hapus semua export lama (PNG & Lottie) — Diganti dengan script export baru
 downloadBtn.addEventListener('click', async () => {
     downloadBtn.textContent = 'Rendering...';
     downloadBtn.disabled = true;
@@ -248,80 +251,44 @@ downloadBtn.addEventListener('click', async () => {
         card.style.transition = 'none';
         document.body.appendChild(card);
 
-        // pastikan semua animasi berhenti supaya efeknya fix di frame yang terlihat
+        // Pause animasi & pastikan style visual fixed
         card.querySelectorAll('*').forEach(el => {
             const style = window.getComputedStyle(el);
             el.style.animationPlayState = 'paused';
             el.style.transition = 'none';
             el.style.opacity = style.opacity;
-            el.style.mixBlendMode = style.mixBlendMode;
-            el.style.filter = style.filter;
             el.style.background = style.background;
             el.style.backgroundImage = style.backgroundImage;
             el.style.backgroundSize = style.backgroundSize;
             el.style.backgroundPosition = style.backgroundPosition;
+            el.style.mixBlendMode = style.mixBlendMode;
+            el.style.filter = style.filter;
         });
 
-        // buat canvas dengan resolusi tinggi
-        const scale = 3;
-        const canvas = document.createElement('canvas');
-        canvas.width = original.width * scale;
-        canvas.height = original.height * scale;
-        const ctx = canvas.getContext('2d');
-
-        // step 1: render dasar dari html2canvas
-        const baseCanvas = await html2canvas(card, {
+        // Buat canvas resolusi tinggi
+        const scale = 4;
+        const canvas = await html2canvas(card, {
             scale,
             backgroundColor: null,
             useCORS: true,
             allowTaint: true
         });
-        ctx.drawImage(baseCanvas, 0, 0);
 
-        // step 2: tambahkan overlay efek secara manual dengan blending
-        const overlayLayers = card.querySelectorAll('.light-strip, .glass-reflection, .hologram-overlay, .texture-overlay, .spotlight-effect, .glow-effect');
-        overlayLayers.forEach(layer => {
-            const cs = window.getComputedStyle(layer);
-            const grad = cs.backgroundImage || cs.background;
-            const op = parseFloat(cs.opacity) || 1;
-            const blend = cs.mixBlendMode || 'normal';
-
-            if (grad && grad.includes('gradient')) {
-                // buat pseudo-layer dari gradient
-                const temp = document.createElement('canvas');
-                temp.width = canvas.width;
-                temp.height = canvas.height;
-                const tctx = temp.getContext('2d');
-                const g = tctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                g.addColorStop(0, 'rgba(255,255,255,0)');
-                g.addColorStop(1, 'rgba(255,255,255,0.1)');
-                tctx.fillStyle = g;
-                tctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.globalAlpha = op;
-                ctx.globalCompositeOperation = blend;
-                ctx.drawImage(temp, 0, 0);
-            }
-        });
-
-        ctx.globalAlpha = 1;
-        ctx.globalCompositeOperation = 'source-over';
-
+        const type = 'image/png'; // atau image/jpeg (bisa diubah sesuai kebutuhan)
         const link = document.createElement('a');
-        link.download = `nft-card-${cardTitle.value.replace(/\s+/g, '-').toLowerCase()}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.download = `nft-card-${cardTitle.value.replace(/\s+/g, '-').toLowerCase()}.${type === 'image/png' ? 'png' : 'jpg'}`;
+        link.href = canvas.toDataURL(type);
         link.click();
 
         document.body.removeChild(card);
     } catch (err) {
         console.error(err);
-        alert('Gagal generate PNG.');
+        alert('Gagal generate gambar.');
     } finally {
-        downloadBtn.textContent = 'Download NFT Card';
+        downloadBtn.textContent = 'Generate';
         downloadBtn.disabled = false;
     }
 });
-
 
 // Event listeners
 cardTitle.addEventListener('input', updateCard);
