@@ -43,7 +43,7 @@ const themes = {
     },
     royal: {
         name: 'Royal Purple',
-        background: 'linear-gradient(135deg, #8e2de2 0%, #000000ff 50%, #b721ff 100%)',
+        background: 'linear-gradient(135deg, #8e2de2 0%, #00ffda 50%, #b721ff 100%)',
         accent: '#b721ff',
         textColor: 'light',
         hologram: 'royal'
