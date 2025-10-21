@@ -236,8 +236,23 @@ nftCard.addEventListener('mouseleave', () => {
   mouseY = 50;
 });
 
+// Function to copy image to clipboard
+async function copyImageToClipboard(blob) {
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        'image/png': blob
+      })
+    ]);
+    return true;
+  } catch (err) {
+    console.error('Failed to copy image to clipboard:', err);
+    return false;
+  }
+}
+
 // Function to show popup with preview image and share button
-function showPreviewPopup(imageDataUrl, fileName) {
+function showPreviewPopup(imageDataUrl, fileName, imageBlob) {
   // Create popup overlay
   const overlay = document.createElement('div');
   overlay.style.cssText = `
@@ -280,6 +295,16 @@ function showPreviewPopup(imageDataUrl, fileName) {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
   `;
 
+  // Create instruction text
+  const instructionText = document.createElement('p');
+  instructionText.style.cssText = `
+    color: #a0a0a0;
+    font-size: 0.9rem;
+    text-align: center;
+    margin: 0;
+  `;
+  instructionText.textContent = 'Gambar sudah di-download! Klik "Copy & Share to X" untuk copy gambar ke clipboard, lalu paste di X/Twitter';
+
   // Create buttons container
   const buttonsContainer = document.createElement('div');
   buttonsContainer.style.cssText = `
@@ -287,11 +312,17 @@ function showPreviewPopup(imageDataUrl, fileName) {
     gap: 1rem;
     width: 100%;
     justify-content: center;
+    flex-wrap: wrap;
   `;
 
-  // Create share to X button
+  // Create share to X button with copy
   const shareBtn = document.createElement('button');
-  shareBtn.textContent = 'Share to X';
+  shareBtn.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 8px;">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+    Copy & Share to X
+  `;
   shareBtn.style.cssText = `
     padding: 0.875rem 2rem;
     background: #1DA1F2;
@@ -302,6 +333,9 @@ function showPreviewPopup(imageDataUrl, fileName) {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   `;
   shareBtn.onmouseover = () => {
     shareBtn.style.background = '#1a8cd8';
@@ -311,10 +345,51 @@ function showPreviewPopup(imageDataUrl, fileName) {
     shareBtn.style.background = '#1DA1F2';
     shareBtn.style.transform = 'translateY(0)';
   };
-  shareBtn.onclick = () => {
-    const tweetText = `Check out my NFT Card: ${cardTitle.value}!`;
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
-    window.open(tweetUrl, '_blank');
+  shareBtn.onclick = async () => {
+    // Copy image to clipboard
+    const copied = await copyImageToClipboard(imageBlob);
+    
+    if (copied) {
+      // Show success message
+      shareBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 8px;">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+        Copied! Opening X...
+      `;
+      shareBtn.style.background = '#10b981';
+      
+      // Wait a bit then open X
+      setTimeout(() => {
+        const tweetText = `Check out my NFT Card: ${cardTitle.value}!\n\n✨ Created with NFT Card Generator`;
+        const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+        window.open(tweetUrl, '_blank');
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+          shareBtn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 8px;">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            Copy & Share to X
+          `;
+          shareBtn.style.background = '#1DA1F2';
+        }, 2000);
+      }, 500);
+    } else {
+      // Show error message
+      shareBtn.innerHTML = `❌ Copy Failed - Try Manual`;
+      shareBtn.style.background = '#ef4444';
+      setTimeout(() => {
+        shareBtn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 8px;">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+          Copy & Share to X
+        `;
+        shareBtn.style.background = '#1DA1F2';
+      }, 2000);
+    }
   };
 
   // Create close button
@@ -347,6 +422,7 @@ function showPreviewPopup(imageDataUrl, fileName) {
   buttonsContainer.appendChild(shareBtn);
   buttonsContainer.appendChild(closeBtn);
   popup.appendChild(img);
+  popup.appendChild(instructionText);
   popup.appendChild(buttonsContainer);
   overlay.appendChild(popup);
 
@@ -425,8 +501,7 @@ downloadBtn.addEventListener('click', async () => {
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
 
-    //  Wait 200ms for fonts and styles to fully load
-    // Just To be secure 
+    // Wait 200ms for fonts and styles to fully load
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Preserve image aspect ratios and sizing from original card
@@ -441,7 +516,6 @@ downloadBtn.addEventListener('click', async () => {
     });
 
     // Fix gradient text rendering issues
-    // Added backgroundClip and color properties for better compatibility
     clone.querySelectorAll('.card-title, .card-number').forEach(el => {
       el.style.background = 'none';
       el.style.webkitBackgroundClip = 'unset';
@@ -465,8 +539,6 @@ downloadBtn.addEventListener('click', async () => {
     }
 
     // Render the clone to canvas with high quality settings
-    // Pass clone directly instead of wrapper, added cacheBust and quality
-
     const canvas = await htmlToImage.toCanvas(clone, {
       pixelRatio: scale,
       backgroundColor: null,
@@ -474,8 +546,11 @@ downloadBtn.addEventListener('click', async () => {
       quality: 1.0
     });
 
-    // Convert canvas to PNG data URL
+    // Convert canvas to PNG data URL and blob
     const imageDataUrl = canvas.toDataURL('image/png');
+    
+    // Convert to blob for clipboard
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     
     // Create download link and trigger download
     const fileName = `nft-card-${cardTitle.value.replace(/\s+/g, '-').toLowerCase()}.png`;
@@ -484,11 +559,11 @@ downloadBtn.addEventListener('click', async () => {
     link.href = imageDataUrl;
     link.click();
 
-    // remove wrapper from DOM
+    // Remove wrapper from DOM
     document.body.removeChild(wrapper);
 
-    // Show preview popup after download
-    showPreviewPopup(imageDataUrl, fileName);
+    // Show preview popup after download with blob
+    showPreviewPopup(imageDataUrl, fileName, blob);
 
   } catch (err) {
     console.error('Render Error:', err);
@@ -499,7 +574,6 @@ downloadBtn.addEventListener('click', async () => {
     downloadBtn.disabled = false;
   }
 });
-
 
 // Event listeners
 cardTitle.addEventListener('input', updateCard);
