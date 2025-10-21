@@ -303,7 +303,7 @@ function showPreviewPopup(imageDataUrl, fileName, imageBlob) {
     text-align: center;
     margin: 0;
   `;
-  instructionText.textContent = 'Gambar sudah di-download! Klik "Copy & Share to X" untuk copy gambar ke clipboard, lalu paste di X/Twitter';
+  instructionText.textContent = 'The image has been downloaded! Click "Copy & Share to X" to copy the image to the clipboard, then paste it into X/Twitter.';
 
   // Create buttons container
   const buttonsContainer = document.createElement('div');
