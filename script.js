@@ -236,6 +236,145 @@ nftCard.addEventListener('mouseleave', () => {
   mouseY = 50;
 });
 
+// Function to show popup with preview image and share button
+function showPreviewPopup(imageDataUrl, fileName) {
+  // Create popup overlay
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+  `;
+
+  // Create popup container
+  const popup = document.createElement('div');
+  popup.style.cssText = `
+    background: var(--bg-secondary);
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    border: 1px solid var(--border-color);
+    animation: slideIn 0.3s ease;
+  `;
+
+  // Create preview image
+  const img = document.createElement('img');
+  img.src = imageDataUrl;
+  img.style.cssText = `
+    max-width: 100%;
+    max-height: 60vh;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  `;
+
+  // Create buttons container
+  const buttonsContainer = document.createElement('div');
+  buttonsContainer.style.cssText = `
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    justify-content: center;
+  `;
+
+  // Create share to X button
+  const shareBtn = document.createElement('button');
+  shareBtn.textContent = 'Share to X';
+  shareBtn.style.cssText = `
+    padding: 0.875rem 2rem;
+    background: #1DA1F2;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  `;
+  shareBtn.onmouseover = () => {
+    shareBtn.style.background = '#1a8cd8';
+    shareBtn.style.transform = 'translateY(-2px)';
+  };
+  shareBtn.onmouseout = () => {
+    shareBtn.style.background = '#1DA1F2';
+    shareBtn.style.transform = 'translateY(0)';
+  };
+  shareBtn.onclick = () => {
+    const tweetText = `Check out my NFT Card: ${cardTitle.value}!`;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+    window.open(tweetUrl, '_blank');
+  };
+
+  // Create close button
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = 'Close';
+  closeBtn.style.cssText = `
+    padding: 0.875rem 2rem;
+    background: var(--bg-primary);
+    color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  `;
+  closeBtn.onmouseover = () => {
+    closeBtn.style.background = '#374151';
+    closeBtn.style.transform = 'translateY(-2px)';
+  };
+  closeBtn.onmouseout = () => {
+    closeBtn.style.background = 'var(--bg-primary)';
+    closeBtn.style.transform = 'translateY(0)';
+  };
+  closeBtn.onclick = () => {
+    document.body.removeChild(overlay);
+  };
+
+  // Assemble popup
+  buttonsContainer.appendChild(shareBtn);
+  buttonsContainer.appendChild(closeBtn);
+  popup.appendChild(img);
+  popup.appendChild(buttonsContainer);
+  overlay.appendChild(popup);
+
+  // Add animations
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideIn {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Close on overlay click
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      document.body.removeChild(overlay);
+    }
+  };
+
+  // Append to body
+  document.body.appendChild(overlay);
+}
+
 // Download / Export logic
 const downloadSelect = document.getElementById('downloadSelect');
 
@@ -335,20 +474,26 @@ downloadBtn.addEventListener('click', async () => {
       quality: 1.0
     });
 
-    // Create download link and trigger download
     // Convert canvas to PNG data URL
+    const imageDataUrl = canvas.toDataURL('image/png');
+    
+    // Create download link and trigger download
+    const fileName = `nft-card-${cardTitle.value.replace(/\s+/g, '-').toLowerCase()}.png`;
     const link = document.createElement('a');
-    link.download = `nft-card-${cardTitle.value.replace(/\s+/g, '-').toLowerCase()}.png`;
-    link.href = canvas.toDataURL('image/png'); link.click();
+    link.download = fileName;
+    link.href = imageDataUrl;
+    link.click();
 
     // remove wrapper from DOM
     document.body.removeChild(wrapper);
+
+    // Show preview popup after download
+    showPreviewPopup(imageDataUrl, fileName);
 
   } catch (err) {
     console.error('Render Error:', err);
     alert('Failed to generate image: ' + err.message);
   } finally {
-    alert("Your NFT card has been generated and downloaded successfully!");
     // Reset button state
     downloadBtn.textContent = 'Generate';
     downloadBtn.disabled = false;
