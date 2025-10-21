@@ -192,10 +192,15 @@ function updateTextureOverlay(themeKey) {
 // Change font
 function changeFont(font) {
     const fonts = {
-        orbitron: 'Orbitron, monospace',
+         orbitron: 'Orbitron, monospace',
         cyberpunk: '"Courier New", monospace',
         futura: '"Helvetica Neue", sans-serif',
-        quantum: '"Arial Black", sans-serif'
+        quantum: '"Arial Black", sans-serif',
+        audiowide: '"Audiowide", cursive',
+        spacegrotesk: '"Space Grotesk", sans-serif',
+        vt323: '"VT323", monospace',
+        bebasneue: '"Bebas Neue", sans-serif',
+        rajdhani: '"Rajdhani", sans-serif'
     };
     nftCard.style.fontFamily = fonts[font] || fonts.orbitron;
 }
