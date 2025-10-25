@@ -265,7 +265,7 @@ function applyTransform() {
   if (isThick) {
     // stronger shadow + border + slight z-translate for depth
     nftCard.style.boxShadow = `0 45px 90px -18px ${theme.accent}aa, 0 30px 60px -30px ${theme.accent}88, 0 28px 56px -40px rgba(0,0,0,0.6)`;
-    nftCard.style.border = `3px solid rgba(255,255,255,0.06)`;
+    //nftCard.style.border = `3px solid rgba(255,255,255,0.06)`;
     transformStr += ' translateZ(8px)';
   }
 
@@ -274,31 +274,66 @@ function applyTransform() {
 
 /* Event listeners for card movement */
 nftCard.addEventListener('mousemove', (e) => {
-  if (!cachedRect) updateRect();
-  const rect = cachedRect;
-  const newMouseX = ((e.clientX - rect.left) / rect.width) * 100;
-  const newMouseY = ((e.clientY - rect.top) / rect.height) * 100;
-  target.mouseX = Math.max(0, Math.min(100, newMouseX));
-  target.mouseY = Math.max(0, Math.min(100, newMouseY));
-  scheduleTransformUpdate();
+    if (!cachedRect) updateRect();
+    const rect = cachedRect;
+    const newMouseX = ((e.clientX - rect.left) / rect.width) * 100;
+    const newMouseY = ((e.clientY - rect.top) / rect.height) * 100;
+    target.mouseX = Math.max(0, Math.min(100, newMouseX));
+    target.mouseY = Math.max(50, Math.min(100, newMouseY));
+    scheduleTransformUpdate();
 });
 
-nftCard.addEventListener('mouseenter', (e) => {
-  updateRect();
-  nftCard.style.transition = 'transform 0.08s ease-out, box-shadow 0.12s ease-out, border 0.12s ease-out';
-  isThick = true; /* enable thickening */
+// === 3D Depth Effect start ===
+let depthLayer = null;
+let isDepthActive = false;
+
+nftCard.addEventListener('mouseenter', () => {
+    const theme = themes[currentTheme];
+    if (!depthLayer) {
+        depthLayer = document.createElement('div');
+        depthLayer.className = 'card-depth';
+        depthLayer.style.position = 'absolute';
+        depthLayer.style.inset = '0';
+        depthLayer.style.borderRadius = 'inherit';
+        /*depthLayer.style.background = `${theme.accent}55`;*/
+        depthLayer.style.boxShadow = `0 0 10px 2px rgba(41, 40, 40, 0.5)`; /* soft white glow edge */
+        depthLayer.style.transition = 'transform 0.08s ease-out';
+        depthLayer.style.zIndex = '0';
+        nftCard.appendChild(depthLayer);
+    }
+    isDepthActive = true;
 });
 
 nftCard.addEventListener('mouseleave', () => {
-  nftCard.style.transition = 'transform 0.5s ease-out, box-shadow 0.5s ease-out, border 0.3s ease-out';
-  nftCard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
-  const theme = themes[currentTheme];
-  nftCard.style.boxShadow = `0 25px 50px -12px ${theme.accent}80, 0 20px 40px -10px ${theme.accent}60, 0 15px 30px -8px ${theme.accent}40`;
-  nftCard.style.border = 'none';
-  isThick = false;
-  spotlightEffect.style.background = 'none';
-  cachedRect = null;
+    isDepthActive = false;
+    if (!depthLayer) {
+        depthLayer = document.createElement('div');
+        depthLayer.className = 'card-depth';
+        depthLayer.style.position = 'absolute';
+        depthLayer.style.inset = '0';
+        depthLayer.style.borderRadius = 'inherit';
+        /*depthLayer.style.background = `${theme.accent}55`;*/
+        depthLayer.style.boxShadow = `0 0 10px 2px rgba(43, 43, 43, 0.5)`; /* soft white glow edge */
+        depthLayer.style.transition = 'transform 0.08s ease-out';
+        depthLayer.style.zIndex = '0';
+        nftCard.appendChild(depthLayer);
+    }
+    isDepthActive = true;
 });
+
+const _origApplyTransform = applyTransform;
+applyTransform = function() {
+    _origApplyTransform();
+    if (isDepthActive && depthLayer) {
+        const theme = themes[currentTheme];
+        const offsetX = ((target.mouseX - 50) / 50) * -4;
+        const offsetY = ((target.mouseY - 50) / 50) * -4;
+        depthLayer.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        /*depthLayer.style.background = `linear-gradient(${180 + offsetY * 2}deg, ${theme.accent}99 0%, ${theme.accent}33 100%)`;*/
+    }
+};
+// === 3D Depth Effect end ===
+
 
 /* -------------------------
    Clipboard helpers & preview popup (preserved original)
@@ -531,6 +566,14 @@ downloadBtn.addEventListener('click', async () => {
   downloadBtn.textContent = 'Rendering...';
   downloadBtn.disabled = true;
 
+          // === Reset 3D depth before export ===
+nftCard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+  if (depthLayer) { nftCard.removeChild(depthLayer); depthLayer = null; isDepthActive = false; }
+           // Pastikan semua elemen di dalam kartu sudah balik ke posisi semula sebelum export
+        nftCard.style.transition = 'none'; // cegah animasi rotasi balik
+        void nftCard.offsetHeight; // paksa repaint/reflow (browser flush posisi anak termasuk gambar)
+        nftCard.style.transition = ''; // kembalikan transition normal
+
   try {
     // DEFAULT pixelRatio set to 2 for performance (change if you need higher quality)
     const scale = 2;
@@ -613,6 +656,7 @@ downloadBtn.addEventListener('click', async () => {
       cacheBust: true,
       quality: 1.0
     });
+    
 
     // Convert canvas to PNG data URL and blob
     const imageDataUrl = canvas.toDataURL('image/png');
@@ -657,7 +701,7 @@ downloadBtn.addEventListener('click', async () => {
     }
 
     // Show preview popup (original behavior) — include blob
-    showPreviewPopup(imageDataUrl, fileName, blob);
+   // showPreviewPopup(imageDataUrl, fileName, blob);
 
     // If Web Share didn't run, open X / Twitter compose intent with prefilled text.
     // NOTE: You cannot attach image via intent; user must paste (Ctrl+V) to attach image from clipboard manually.

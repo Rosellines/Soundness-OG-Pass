@@ -150,8 +150,20 @@ body {
     overflow: hidden;
     cursor: pointer;
     transform-style: preserve-3d;
+    /*perspective: 800px;*/
     transition: transform 0.5s ease-out, box-shadow 0.3s ease;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+
+.nft-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.1);
+  transform: translateZ(-10px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .nft-card:hover {
