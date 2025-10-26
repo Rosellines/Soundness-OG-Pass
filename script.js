@@ -592,6 +592,7 @@ nftCard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale
     wrapper.style.zIndex = '-9999';
     wrapper.style.top = '0';
     wrapper.style.left = '0';
+   
 
     // Clone the NFT card with all its children
     const clone = nftCard.cloneNode(true);
@@ -686,22 +687,10 @@ nftCard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale
     const copied = await copyImageToClipboard(blob);
 
     // Try Web Share API as an extra option (will open native share sheet on supporting devices)
-    let sharedViaNavigatorShare = false;
-    try {
-      if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: 'image/png' })] })) {
-        await navigator.share({
-          files: [new File([blob], fileName, { type: 'image/png' })],
-          text: tweetText
-        });
-        sharedViaNavigatorShare = true;
-      }
-    } catch (err) {
-      // not supported or failed — ignore
-      sharedViaNavigatorShare = false;
-    }
-
+    let sharedViaNavigatorShare = true;
+   
     // Show preview popup (original behavior) — include blob
-   // showPreviewPopup(imageDataUrl, fileName, blob);
+     showPreviewPopup(imageDataUrl, fileName, blob);
 
     // If Web Share didn't run, open X / Twitter compose intent with prefilled text.
     // NOTE: You cannot attach image via intent; user must paste (Ctrl+V) to attach image from clipboard manually.
