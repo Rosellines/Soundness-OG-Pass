@@ -64,7 +64,7 @@ const themes = {
   },
   azure: {
     name: 'Azure Sky',
-    background: 'linear-gradient(135deg, #ff00ddff 0%, #001f54 50%, #0084ffff 100%)',
+    background: 'linear-gradient(135deg, #df510fff 0%, #464646ff 50%, #ffd900ff 100%)',
     accent: '#0084ff',
     textColor: 'light',
     hologram: 'azure'

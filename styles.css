@@ -298,10 +298,10 @@ body {
   font-weight: 700;
   letter-spacing: 1px;
   color: #fff;
-  text-shadow: 0 0 10px rgba(255, 100, 255, 0.6);
+
 }
 
-/* === GRITUAL - Glass Glare Effect === */
+
 .glass-glare {
   position: absolute;
   top: 0;
