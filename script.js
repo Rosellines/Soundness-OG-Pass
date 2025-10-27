@@ -1,71 +1,86 @@
 /* script.js (final)
-   NOTE: only JS changed — HTML/CSS left identical.
-   Changes:
-   - Mousemove handled via requestAnimationFrame for performance
-   - Cached bounding rect to avoid frequent layout reads
-   - "Thickening" effect applied when hovered and moving
-   - Default export pixelRatio lowered to 2 for lighter export (adjustable)
-   - After download: copy text + image to clipboard if supported, try navigator.share, open X compose intent with text prefilled
-   - Original preview popup code preserved (unmodified)
+   NOTE: logic and structure preserved identically with original.
+   CHANGES:
+   - All theme colors replaced with full gradients (card + UI)
+   - UI variables (CSS custom properties) updated on theme change so header/form/buttons/footer follow theme
+   - box-shadow / glow / badge colors follow theme accent
 */
 
 /* -------------------------
-   Theme definitions
+   Theme definitions (gradient-enhanced + UI sync)
    ------------------------- */
 const themes = {
   cosmic: {
     name: 'Cosmic',
-    background: 'linear-gradient(135deg, #42444aff 0%, #764ba2 50%, #f093fb 100%)',
-    accent: '#f093fb',
+    /* gradient used for card background */
+    background: 'linear-gradient(135deg, #1e1f3b 0%, #4b3b7a 40%, #8c65f7 70%, #e3a1ff 100%)',
+    /* also used to apply to UI (script will set --ui-gradient to this) */
+    uiBackground: 'linear-gradient(135deg, #0b1228 0%, #23123f 45%, #3d2a66 100%)',
+    accent: '#b785ff',
+    accentRgb: '183,133,255',
     textColor: 'light',
     hologram: 'cosmic'
   },
   neon: {
     name: 'Neon Cyber',
-    background: 'linear-gradient(135deg, #ffffffff 0%, #16213e 50%, #081d36ff 100%)',
+    background: 'linear-gradient(135deg, #081b2e 0%, #122b47 35%, #00d9ff 70%, #32fff6 100%)',
+    uiBackground: 'linear-gradient(135deg, #050912 0%, #06142a 40%, #081d36 100%)',
     accent: '#00d9ff',
+    accentRgb: '0,217,255',
     textColor: 'light',
     hologram: 'neon'
   },
   ocean: {
     name: 'Ocean Depths',
-    background: 'linear-gradient(135deg, #667db6  0%, #00deb1ff 50%, #ffd500ff 100%)',
-    accent: '#00ff9f',
+    background: 'linear-gradient(135deg, #003459 0%, #007ea7 40%, #00b4d8 70%, #90e0ef 100%)',
+    uiBackground: 'linear-gradient(135deg, #001622 0%, #002635 45%, #003d4d 100%)',
+    accent: '#00b4d8',
+    accentRgb: '0,180,216',
     textColor: 'light',
     hologram: 'ocean'
   },
   fire: {
     name: 'Flame Core',
-    background: 'linear-gradient(135deg, #fff5f6ff 0%, #ff6a88 50%, #ff416c 100%)',
-    accent: '#ff6a88',
+    background: 'linear-gradient(135deg, #3b0d00 0%, #7a1c00 35%, #ff3d00 65%, #ffb347 100%)',
+    uiBackground: 'linear-gradient(135deg, #1a0b04 0%, #3b0d00 45%, #7a1c00 100%)',
+    accent: '#ff6a00',
+    accentRgb: '255,106,0',
     textColor: 'light',
     hologram: 'fire'
   },
   sunset: {
     name: 'Sunset Glow',
-    background: 'linear-gradient(135deg, #ff6e7f 0%, #60c7ffff 50%, #a23ddcff 100%)',
-    accent: '#a23ddc',
+    background: 'linear-gradient(135deg, #331833 0%, #ff416c 40%, #ff9966 75%, #ffd26f 100%)',
+    uiBackground: 'linear-gradient(135deg, #2a111a 0%, #3b1630 45%, #6b2b3d 100%)',
+    accent: '#ff6e7f',
+    accentRgb: '255,110,127',
     textColor: 'light',
     hologram: 'sunset'
   },
   midnight: {
     name: 'Midnight',
-    background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #0084ffff 100%)',
+    background: 'linear-gradient(135deg, #0f2027 0%, #203a43 40%, #2c5364 70%, #4f86c6 100%)',
+    uiBackground: 'linear-gradient(135deg, #071018 0%, #0b2630 45%, #13384c 100%)',
     accent: '#3498db',
+    accentRgb: '52,152,219',
     textColor: 'light',
     hologram: 'midnight'
   },
   royal: {
     name: 'Royal Purple',
-    background: 'linear-gradient(135deg, #8e2de2 0%, #00ffda 50%, #b721ff 100%)',
+    background: 'linear-gradient(135deg, #2b1055 0%, #642b73 40%, #c6426e 70%, #f09 100%)',
+    uiBackground: 'linear-gradient(135deg, #140824 0%, #2b1055 45%, #481a4a 100%)',
     accent: '#b721ff',
+    accentRgb: '183,33,255',
     textColor: 'light',
     hologram: 'royal'
   },
   azure: {
     name: 'Azure Sky',
-    background: 'linear-gradient(135deg, #df510fff 0%, #464646ff 50%, #ffd900ff 100%)',
-    accent: '#0084ff',
+    background: 'linear-gradient(135deg, #051937 0%, #004d7a 35%, #008793 70%, #00bf72 85%, #a8eb12 100%)',
+    uiBackground: 'linear-gradient(135deg, #02121a 0%, #043047 45%, #026b60 100%)',
+    accent: '#00bf72',
+    accentRgb: '0,191,114',
     textColor: 'light',
     hologram: 'azure'
   }
@@ -128,33 +143,77 @@ function updateCard() {
   displayOwner.style.display = cardOwner.value ? 'block' : 'none';
 }
 
+/* Update CSS variables for UI sync */
+function applyThemeToUI(theme) {
+  try {
+    document.documentElement.style.setProperty('--ui-gradient', theme.uiBackground || theme.background);
+    document.documentElement.style.setProperty('--accent-color', theme.accent);
+    document.documentElement.style.setProperty('--accent-color-rgb', theme.accentRgb || hexToRgb(theme.accent));
+    // tweak border color variable if needed
+    document.documentElement.style.setProperty('--border-color', 'rgba(255,255,255,0.06)');
+  } catch (e) {
+    console.warn('Failed to apply theme to UI variables:', e);
+  }
+}
+
+/* helper: convert #rrggbb to "r,g,b" (if accentRgb not provided) */
+function hexToRgb(hex) {
+  if (!hex) return '107,91,255';
+  const h = hex.replace('#','');
+  if (h.length === 3) {
+    const r = parseInt(h[0]+h[0],16);
+    const g = parseInt(h[1]+h[1],16);
+    const b = parseInt(h[2]+h[2],16);
+    return `${r},${g},${b}`;
+  } else if (h.length === 6) {
+    const r = parseInt(h.slice(0,2),16);
+    const g = parseInt(h.slice(2,4),16);
+    const b = parseInt(h.slice(4,6),16);
+    return `${r},${g},${b}`;
+  } else {
+    return '107,91,255';
+  }
+}
+
 function changeTheme(themeKey) {
   currentTheme = themeKey;
   const theme = themes[themeKey];
 
+  // update card background & box-shadow (box-shadow follows accent color)
   nftCard.style.background = theme.background;
-  nftCard.style.boxShadow = `0 25px 50px -12px ${theme.accent}80, 0 20px 40px -10px ${theme.accent}60, 0 15px 30px -8px ${theme.accent}40`;
+  nftCard.style.boxShadow = `
+    0 25px 50px -12px ${theme.accent}80,
+    0 20px 40px -10px ${theme.accent}60,
+    0 15px 30px -8px ${theme.accent}40
+  `;
 
   // dynamic glow (inline)
   glowEffect.style.background = `
-  radial-gradient(circle at 30% 20%, ${theme.accent}33 0%, transparent 50%),
-  radial-gradient(circle at 70% 80%, ${theme.accent}22 0%, transparent 60%)
-`;
+    radial-gradient(circle at 30% 20%, ${theme.accent}33 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, ${theme.accent}22 0%, transparent 60%)
+  `;
 
   const rarityBadge = document.getElementById('displayRarity');
   rarityBadge.style.background = `${theme.accent}40`;
   rarityBadge.style.borderColor = `${theme.accent}60`;
 
-  // Update theme buttons (use cached keys)
+  // Update theme buttons active state
   document.querySelectorAll('.theme-btn').forEach((btn, index) => {
     const key = themeKeys[index];
     btn.classList.toggle('active', key === themeKey);
   });
 
+  // Update hologram & texture overlays (preserve original mapping approach)
   updateHologramOverlay(theme.hologram);
   updateTextureOverlay(themeKey);
+
+  // Apply theme to UI (header/form/buttons/footer)
+  applyThemeToUI(theme);
 }
 
+/* -------------------------
+   Hologram / texture helpers
+   ------------------------- */
 function updateHologramOverlay(hologramType) {
   const gradients = {
     cosmic: 'linear-gradient(45deg, rgba(255,0,150,0.2) 0%, rgba(0,255,255,0.2) 25%, rgba(255,255,0,0.2) 50%, rgba(255,0,150,0.2) 75%, rgba(0,255,255,0.2) 100%)',
@@ -210,6 +269,9 @@ function updateTextureOverlay(themeKey) {
   textureOverlay.style.background = textures[themeKey] || textures.cosmic;
 }
 
+/* -------------------------
+   Font switching (unchanged)
+   ------------------------- */
 function changeFont(font) {
   const fonts = {
     orbitron: 'Orbitron, monospace',
