@@ -405,6 +405,7 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: opacity 0.6s ease;
 }
 
 .card-info {
@@ -564,4 +565,101 @@ body {
 .nft-card.snapshot .glow-effect {
     animation: none !important;
     transition: none !important;
+}
+/* 🎃 Halloween Theme Elements */
+.halloween-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  display: none;
+}
+
+.halloween-layer.active {
+  display: block;
+}
+
+/* Bats */
+.halloween-layer .bat {
+  position: absolute;
+  width: 80px;
+  top: 20%;
+  left: -100px;
+  animation: batFly 10s linear infinite;
+}
+
+@keyframes batFly {
+  0% { left: -120px; transform: scaleX(1) rotate(0deg); top: 20%; }
+  50% { left: 110%; transform: scaleX(1) rotate(5deg); top: 25%; }
+  100% { left: -120px; transform: scaleX(-1) rotate(-5deg); top: 20%; }
+}
+
+/* Pumpkin */
+.halloween-layer .pumpkin {
+  position: absolute;
+  bottom: 37px;
+  right: 20px;
+  width: 90px;
+  animation: pumpkinGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes pumpkinGlow {
+  from { filter: drop-shadow(0 0 5px #ff6600); opacity: 0.8; }
+  to { filter: drop-shadow(0 0 20px #ffcc00); opacity: 1; }
+}
+
+/* Moon */
+.halloween-layer .moon {
+  position: absolute;
+  top: 0px;
+  right: 20px;
+  width: 50px;
+  opacity: 1;
+  filter: drop-shadow(0 0 15px #ffe066);
+}
+
+/* Halloween logo */
+.halloween-layer .halloween-logo {
+  position: absolute;
+  top: 68%;
+  left: 20%;
+  transform: translate(-50%, -50%);
+  width: 150px;
+  opacity: 0.8;
+}
+
+@keyframes logoPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+  50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+/* Clouds */
+.halloween-layer .halloween-clouds {
+  position: absolute;
+  inset: 0;
+  background: url('assets/halloween/clouds.png') repeat-x;
+  background-size: cover;
+  opacity: 0.10;
+  animation: cloudsMove 40s linear infinite;
+}
+
+@keyframes cloudsMove {
+  from { background-position: 0 0; }
+  to { background-position: -2000px 0; }
+}
+
+/* Body background override for Halloween */
+body.halloween-mode {
+  background: url('assets/halloween/halloween-bg.jpeg') no-repeat center center fixed;
+  background-size: cover;
+}
+/* Style dropdown option color agar tidak putih */
+select {
+  color: #fff;
+  background-color: #1a1a1a;
+}
+
+select option {
+  background-color: #1a1a1a; /* warna dropdown list */
+  color: #fff;
 }

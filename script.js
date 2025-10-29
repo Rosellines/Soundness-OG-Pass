@@ -83,6 +83,15 @@ const themes = {
     accentRgb: '0,191,114',
     textColor: 'light',
     hologram: 'azure'
+  },
+    halloween: {
+    name: 'Halloween Night',
+    background: 'linear-gradient(135deg, #1a0d00 0%, #3a1a00 40%, #ff6600 70%, #ffcc00 100%)',
+    uiBackground: 'linear-gradient(135deg, #0b0500 0%, #1a0d00 45%, #3a1a00 100%)',
+    accent: '#ff7518',
+    accentRgb: '255,117,24',
+    textColor: 'light',
+    hologram: 'halloween'
   }
 };
 
@@ -202,6 +211,28 @@ function changeTheme(themeKey) {
     const key = themeKeys[index];
     btn.classList.toggle('active', key === themeKey);
   });
+  // 🎃 Halloween specific behavior
+  const halloweenLayer = document.querySelector('.halloween-layer');
+  if (themeKey === 'halloween') {
+    document.body.classList.add('halloween-mode');
+    if (halloweenLayer) halloweenLayer.classList.add('active');
+  } else {
+    document.body.classList.remove('halloween-mode');
+    if (halloweenLayer) halloweenLayer.classList.remove('active');
+  }
+  // 🖼️ Halloween image swap
+  const cardImage = document.querySelector('.card-image img');
+  if (themeKey === 'halloween') {
+    // ganti gambar tengah dengan versi halloween
+    cardImage.dataset.originalSrc = cardImage.src; // simpan src asli biar bisa dikembalikan
+    cardImage.src = 'assets/halloween/image-halloween.jpeg';
+  } else {
+    // kembalikan ke gambar default kalau bukan halloween
+    if (cardImage.dataset.originalSrc) {
+      cardImage.src = cardImage.dataset.originalSrc;
+      delete cardImage.dataset.originalSrc;
+    }
+  }
 
   // Update hologram & texture overlays (preserve original mapping approach)
   updateHologramOverlay(theme.hologram);
