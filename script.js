@@ -59,8 +59,8 @@ const themes = {
   },
   midnight: {
     name: 'Midnight',
-    background: 'linear-gradient(135deg, #0f2027 0%, #203a43 40%, #2c5364 70%, #4f86c6 100%)',
-    uiBackground: 'linear-gradient(135deg, #071018 0%, #0b2630 45%, #13384c 100%)',
+    background: 'linear-gradient(135deg, #05a4e9ff 0%, #05a4e9ff 40%, #92b0b4ff 70%, #05a4e9ff 100%)',
+    uiBackground: 'linear-gradient(135deg, #05a4e9ff 0%, #05a4e9ff 45%, #d6d6d6ff 100%)',
     accent: '#3498db',
     accentRgb: '52,152,219',
     textColor: 'light',
@@ -98,7 +98,7 @@ const themes = {
 /* -------------------------
    State & Cached DOM
    ------------------------- */
-let currentTheme = 'cosmic';
+let currentTheme = 'midnight';
 let mouseX = 50;
 let mouseY = 50;
 
