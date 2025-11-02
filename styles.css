@@ -663,3 +663,29 @@ select option {
   background-color: #1a1a1a; /* warna dropdown list */
   color: #fff;
 }
+.theme-circles {
+  position: absolute;
+  display: flex;
+  right: 480px;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: -150px; /* sedikit ke atas dari default */
+  margin-bottom: 2rem; /* beri jarak bawah agar tidak terlalu mepet */
+  flex-wrap: wrap;
+}
+
+.theme-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+.theme-circle.active {
+  box-shadow: 0 0 0 4px rgba(var(--accent-color-rgb), 0.25),
+              0 0 12px rgba(var(--accent-color-rgb), 0.6);
+  border-color: var(--accent-color);
+}

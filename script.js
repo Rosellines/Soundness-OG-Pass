@@ -15,7 +15,7 @@ const themes = {
     /* gradient used for card background */
     background: 'linear-gradient(135deg, #1e1f3b 0%, #4b3b7a 40%, #8c65f7 70%, #e3a1ff 100%)',
     /* also used to apply to UI (script will set --ui-gradient to this) */
-    uiBackground: 'linear-gradient(135deg, #0b1228 0%, #23123f 45%, #3d2a66 100%)',
+    uiBackground: 'linear-gradient(135deg, #52576b 0%, #23123f 45%, #3d2a66 100%)',
     accent: '#b785ff',
     accentRgb: '183,133,255',
     textColor: 'light',
@@ -24,7 +24,7 @@ const themes = {
   neon: {
     name: 'Neon Cyber',
     background: 'linear-gradient(135deg, #081b2e 0%, #122b47 35%, #00d9ff 70%, #32fff6 100%)',
-    uiBackground: 'linear-gradient(135deg, #050912 0%, #06142a 40%, #081d36 100%)',
+    uiBackground: 'linear-gradient(135deg, #050912 0%, #06142a 40%, #32fff6 100%)',
     accent: '#00d9ff',
     accentRgb: '0,217,255',
     textColor: 'light',
@@ -32,8 +32,8 @@ const themes = {
   },
   ocean: {
     name: 'Ocean Depths',
-    background: 'linear-gradient(135deg, #003459 0%, #007ea7 40%, #00b4d8 70%, #90e0ef 100%)',
-    uiBackground: 'linear-gradient(135deg, #001622 0%, #002635 45%, #003d4d 100%)',
+    background: 'linear-gradient(135deg, #003459 0%, #0080db 40%, #8c8d8d 70%, #302f2f 100%)',
+    uiBackground: 'linear-gradient(135deg, #003459 0%, #0080db 45%, #302f2f 100%)',
     accent: '#00b4d8',
     accentRgb: '0,180,216',
     textColor: 'light',
@@ -50,10 +50,10 @@ const themes = {
   },
   sunset: {
     name: 'Sunset Glow',
-    background: 'linear-gradient(135deg, #331833 0%, #ff416c 40%, #ff9966 75%, #ffd26f 100%)',
-    uiBackground: 'linear-gradient(135deg, #2a111a 0%, #3b1630 45%, #6b2b3d 100%)',
-    accent: '#ff6e7f',
-    accentRgb: '255,110,127',
+    background: 'linear-gradient(135deg, #116e0e 0%, #377016 40%, #62af19 75%, #87ff41 100%)',
+    uiBackground: 'linear-gradient(135deg, #116e0e 0%, #377016 45%, #62af19 100%)',
+    accent: '#62af19',
+    accentRgb: '98,175,25',
     textColor: 'light',
     hologram: 'sunset'
   },
@@ -84,7 +84,7 @@ const themes = {
     textColor: 'light',
     hologram: 'azure'
   },
-    halloween: {
+  halloween: {
     name: 'Halloween Night',
     background: 'linear-gradient(135deg, #1a0d00 0%, #3a1a00 40%, #ff6600 70%, #ffcc00 100%)',
     uiBackground: 'linear-gradient(135deg, #0b0500 0%, #1a0d00 45%, #3a1a00 100%)',
@@ -254,7 +254,8 @@ function updateHologramOverlay(hologramType) {
     sunset: 'linear-gradient(45deg, rgba(255,110,127,0.3) 0%, rgba(255,160,122,0.3) 50%, rgba(255,110,127,0.3) 100%)',
     midnight: 'linear-gradient(45deg, rgba(52,152,219,0.3) 0%, rgba(155,89,182,0.3) 50%, rgba(52,152,219,0.3) 100%)',
     royal: 'linear-gradient(45deg, rgba(255,215,0,0.3) 0%, rgba(183,33,255,0.3) 50%, rgba(255,215,0,0.3) 100%)',
-    azure: 'linear-gradient(45deg, rgba(77,168,218,0.3) 0%, rgba(3,64,120,0.3) 50%, rgba(10,17,40,0.3) 100%)'
+    azure: 'linear-gradient(45deg, rgba(77,168,218,0.3) 0%, rgba(3,64,120,0.3) 50%, rgba(10,17,40,0.3) 100%)',
+    halloween: 'linear-gradient(45deg, rgba(255,118,24,0.22) 0%, rgba(255,204,0,0.18) 40%, rgba(58,26,0,0.12) 100%)'
   };
   hologramOverlay.style.background = gradients[hologramType] || gradients.cosmic;
 }
@@ -295,6 +296,10 @@ function updateTextureOverlay(themeKey) {
     azure: `
             repeating-linear-gradient(60deg, transparent, transparent 8px, rgba(77,168,218,0.04) 8px, rgba(77,168,218,0.04) 16px),
             repeating-linear-gradient(-60deg, transparent, transparent 8px, rgba(3,64,120,0.04) 8px, rgba(3,64,120,0.04) 16px)
+        `,
+    halloween: `
+            radial-gradient(circle at 80% 20%, rgba(255,118,24,0.06) 0%, transparent 40%),
+            radial-gradient(circle at 20% 80%, rgba(255,204,0,0.04) 0%, transparent 50%)
         `
   };
   textureOverlay.style.background = textures[themeKey] || textures.cosmic;
@@ -821,5 +826,22 @@ window.addEventListener('resize', () => {
 initThemeButtons();
 updateCard();
 changeTheme(currentTheme);
+function initThemeButtons() {
+  const themeCircles = document.getElementById('themeCircles');
+  themeCircles.innerHTML = ''; // kosongin isi lama
+  Object.entries(themes).forEach(([key, theme]) => {
+    const circle = document.createElement('div');
+    circle.className = `theme-circle ${key === currentTheme ? 'active' : ''}`;
+    circle.style.background = theme.background; // pakai gradasi tema
+    circle.onclick = () => {
+      changeTheme(key);
+      const sel = document.getElementById('themeSelect');
+      if (sel) sel.value = key;
+      document.querySelectorAll('.theme-circle').forEach(c => c.classList.remove('active'));
+      circle.classList.add('active');
+    };
+    themeCircles.appendChild(circle);
+  });
+}
 
 /* End of script.js */
