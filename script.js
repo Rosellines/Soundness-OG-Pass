@@ -92,6 +92,42 @@ const themes = {
     accentRgb: '255,117,24',
     textColor: 'light',
     hologram: 'halloween'
+  },
+  cyberNeonEnhanced: {
+    name: 'Cyber Neon Enhanced',
+    background: 'linear-gradient(135deg, #0a0a0a 0%, #00ffff 30%, #ff00ff 60%, #ffff00 100%)',
+    uiBackground: 'linear-gradient(135deg, #0a0a0a 0%, #00ffff 45%, #ff00ff 100%)',
+    accent: '#00ffff',
+    accentRgb: '0,255,255',
+    textColor: 'light',
+    hologram: 'cyberNeonEnhanced'
+  },
+  forestMystic: {
+    name: 'Forest Mystic',
+    background: 'linear-gradient(135deg, #0d4f3c 0%, #1b5e20 40%, #4caf50 70%, #81c784 100%)',
+    uiBackground: 'linear-gradient(135deg, #0d4f3c 0%, #1b5e20 45%, #4caf50 100%)',
+    accent: '#4caf50',
+    accentRgb: '76,175,80',
+    textColor: 'light',
+    hologram: 'forestMystic'
+  },
+  iceCrystal: {
+    name: 'Ice Crystal',
+    background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 40%, #90caf9 70%, #42a5f5 100%)',
+    uiBackground: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 45%, #90caf9 100%)',
+    accent: '#42a5f5',
+    accentRgb: '66,165,245',
+    textColor: 'dark',
+    hologram: 'iceCrystal'
+  },
+  desertStorm: {
+    name: 'Desert Storm',
+    background: 'linear-gradient(135deg, #ffcc02 0%, #ff6f00 40%, #bf360c 70%, #3e2723 100%)',
+    uiBackground: 'linear-gradient(135deg, #ffcc02 0%, #ff6f00 45%, #bf360c 100%)',
+    accent: '#ff6f00',
+    accentRgb: '255,111,0',
+    textColor: 'light',
+    hologram: 'desertStorm'
   }
 };
 
@@ -99,8 +135,6 @@ const themes = {
    State & Cached DOM
    ------------------------- */
 let currentTheme = 'midnight';
-let mouseX = 50;
-let mouseY = 50;
 
 // DOM Elements (cached)
 const nftCard = document.getElementById('nftCard');
@@ -132,17 +166,6 @@ const themeKeys = Object.keys(themes);
 /* -------------------------
    Initialize theme buttons & UI
    ------------------------- */
-function initThemeButtons() {
-  Object.entries(themes).forEach(([key, theme]) => {
-    const btn = document.createElement('button');
-    btn.className = `theme-btn ${key === currentTheme ? 'active' : ''}`;
-    btn.style.background = theme.background;
-    btn.innerHTML = `<span>${theme.name}</span>`;
-    btn.onclick = () => changeTheme(key);
-    themeGrid.appendChild(btn);
-  });
-}
-
 function updateCard() {
   displayTitle.textContent = cardTitle.value;
   displayDescription.textContent = cardDescription.value;
@@ -255,7 +278,11 @@ function updateHologramOverlay(hologramType) {
     midnight: 'linear-gradient(45deg, rgba(52,152,219,0.3) 0%, rgba(155,89,182,0.3) 50%, rgba(52,152,219,0.3) 100%)',
     royal: 'linear-gradient(45deg, rgba(255,215,0,0.3) 0%, rgba(183,33,255,0.3) 50%, rgba(255,215,0,0.3) 100%)',
     azure: 'linear-gradient(45deg, rgba(77,168,218,0.3) 0%, rgba(3,64,120,0.3) 50%, rgba(10,17,40,0.3) 100%)',
-    halloween: 'linear-gradient(45deg, rgba(255,118,24,0.22) 0%, rgba(255,204,0,0.18) 40%, rgba(58,26,0,0.12) 100%)'
+    halloween: 'linear-gradient(45deg, rgba(255,118,24,0.22) 0%, rgba(255,204,0,0.18) 40%, rgba(58,26,0,0.12) 100%)',
+    cyberNeonEnhanced: 'linear-gradient(45deg, rgba(0,255,255,0.3) 0%, rgba(255,0,255,0.3) 50%, rgba(255,255,0,0.3) 100%)',
+    forestMystic: 'linear-gradient(45deg, rgba(76,175,80,0.3) 0%, rgba(139,195,74,0.3) 50%, rgba(76,175,80,0.3) 100%)',
+    iceCrystal: 'linear-gradient(45deg, rgba(66,165,245,0.3) 0%, rgba(129,212,250,0.3) 50%, rgba(66,165,245,0.3) 100%)',
+    desertStorm: 'linear-gradient(45deg, rgba(255,111,0,0.3) 0%, rgba(255,193,7,0.3) 50%, rgba(255,111,0,0.3) 100%)'
   };
   hologramOverlay.style.background = gradients[hologramType] || gradients.cosmic;
 }
@@ -404,19 +431,6 @@ nftCard.addEventListener('mouseenter', () => {
 
 nftCard.addEventListener('mouseleave', () => {
     isDepthActive = false;
-    if (!depthLayer) {
-        depthLayer = document.createElement('div');
-        depthLayer.className = 'card-depth';
-        depthLayer.style.position = 'absolute';
-        depthLayer.style.inset = '0';
-        depthLayer.style.borderRadius = 'inherit';
-        /*depthLayer.style.background = `${theme.accent}55`;*/
-        depthLayer.style.boxShadow = `0 0 10px 2px rgba(43, 43, 43, 0.5)`; /* soft white glow edge */
-        depthLayer.style.transition = 'transform 0.08s ease-out';
-        depthLayer.style.zIndex = '0';
-        nftCard.appendChild(depthLayer);
-    }
-    isDepthActive = true;
 });
 
 const _origApplyTransform = applyTransform;
@@ -658,7 +672,7 @@ function showPreviewPopup(imageDataUrl, fileName, imageBlob) {
 /* -------------------------
    Download / Export logic (changed: lighter defaults + post flow)
    ------------------------- */
-const downloadSelect = document.getElementById('downloadSelect');
+
 
 downloadBtn.addEventListener('click', async () => {
   downloadBtn.textContent = 'Rendering...';
@@ -784,18 +798,8 @@ nftCard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale
     // copy image blob if possible
     const copied = await copyImageToClipboard(blob);
 
-    // Try Web Share API as an extra option (will open native share sheet on supporting devices)
-    let sharedViaNavigatorShare = true;
-   
     // Show preview popup (original behavior) — include blob
-     showPreviewPopup(imageDataUrl, fileName, blob);
-
-    // If Web Share didn't run, open X / Twitter compose intent with prefilled text.
-    // NOTE: You cannot attach image via intent; user must paste (Ctrl+V) to attach image from clipboard manually.
-    if (!sharedViaNavigatorShare) {
-      const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
-      window.open(tweetUrl, '_blank');
-    }
+    showPreviewPopup(imageDataUrl, fileName, blob);
 
   } catch (err) {
     console.error('Render Error:', err);
