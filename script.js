@@ -153,6 +153,7 @@ const displayDescription = document.getElementById('displayDescription');
 const displayRarity = document.getElementById('displayRarity');
 const displayNumber = document.getElementById('displayNumber');
 const displayOwner = document.getElementById('displayOwner');
+const imageUpload = document.getElementById('imageUpload');
 
 const spotlightEffect = document.querySelector('.spotlight-effect');
 const glowEffect = document.querySelector('.glow-effect');
@@ -808,6 +809,31 @@ nftCard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale
     downloadBtn.textContent = 'Generate';
     downloadBtn.disabled = false;
   }
+});
+
+/* -------------------------
+   Image upload handling
+   ------------------------- */
+imageUpload.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Validate file type
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+  if (!allowedTypes.includes(file.type)) {
+    alert('Please select a PNG, JPEG, or JPG image file.');
+    return;
+  }
+
+  // Read file as data URL
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const cardImage = document.querySelector('.card-image img');
+    cardImage.src = event.target.result;
+    // Save uploaded image as new original for theme switching
+    cardImage.dataset.originalSrc = event.target.result;
+  };
+  reader.readAsDataURL(file);
 });
 
 /* -------------------------
